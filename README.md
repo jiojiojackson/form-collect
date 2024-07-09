@@ -38,6 +38,7 @@ change `.env.example`in root directory into `.env` and modify the content accord
 `python app.py`
 
 ## use
-visit the url from front-end.The default username and password are both 'test'
+visit the url from front-end.The default username and password are both 'test'  
+![demo](form.png)
 
 
