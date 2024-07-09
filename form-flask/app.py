@@ -3,18 +3,21 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import mysql.connector
 import os
-from models import merge_images, new_uuid, save_photo, save_signature, uploud_folder_path
+from models import *
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
 
+# 加载 .env 文件中的变量
+load_dotenv()
 
 # 配置数据库连接
 db = mysql.connector.connect(
-    host="192.168.20.170",
-    user="webapp",
-    password="Ab147258*",
-    database="form"
+    host=os.getenv("DATABASE_HOST"),
+    user=os.getenv("DATABASE_USER"),
+    password=os.getenv("DATABASE_PASSWORD"),
+    database=os.getenv("DATABASE_NAME")
 )
 
 @app.route('/login', methods=['POST'])
@@ -71,10 +74,10 @@ def submit():
     
     return jsonify({'success': True})
 
-@app.route('/records', methods=['GET'])
-def get_records():
+@app.route('/records/<id>', methods=['GET'])
+def get_records(id):
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT id, text, photoUuid, signUuid FROM submissions")
+    cursor.execute(f"SELECT id, text, photoUuid, signUuid FROM submissions WHERE username='{id}'")
     records = cursor.fetchall()
     cursor.close()
 

@@ -80,16 +80,3 @@ def save_signature(signature, myuuid):
   signature_path = os.path.join(uploud_folder_path, f'{myuuid}.png')
   signature_image.save(signature_path)
    
-
-
-# # 设置图片路径
-# current_file_path = os.path.abspath(__file__)
-# # 获取当前文件所在的目录的绝对路径
-# current_file_dir = os.path.dirname(current_file_path)
-# uploud_folder_path = os.path.join(current_file_dir, 'uploads')
-# base_image_path = os.path.join(uploud_folder_path, 'contract.png')
-# overlay_image_path = os.path.join(uploud_folder_path, 'signature.png')
-# output_image_path = os.path.join(uploud_folder_path, 'merged.png')
-
-# # 合并图片
-# merge_images(base_image_path, overlay_image_path, output_image_path)

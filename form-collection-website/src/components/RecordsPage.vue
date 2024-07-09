@@ -6,9 +6,9 @@
       <div v-for="record in records" :key="record.id" class="record">
         <p>Text: {{ record.text }}</p>
         <p>photo:</p>
-        <img :src="`http://192.168.20.170:5000/uploads/${record.photoUuid}`" alt="Photo" class="thumbnail" @click="previewImage(record.photoUuid)">
+        <img :src=getPhotoUrl(record.photoUuid) alt="Photo" class="thumbnail" @click="previewImage(record.photoUuid)">
         <p>Signature:</p>
-        <img :src="`http://192.168.20.170:5000/uploads/${record.signUuid}`" alt="Photo" class="thumbnail" @click="previewImage(record.signUuid)">
+        <img :src=getPhotoUrl(record.signUuid) alt="Photo" class="thumbnail" @click="previewImage(record.signUuid)">
         <button @click="deleteRecord(record.id)">Delete</button>
       </div>
     </div>
@@ -34,16 +34,24 @@ export default {
   data() {
     return {
       records: [],
-      preview: ''
+      preview: '',
+      backend_host: process.env.VUE_APP_BACKEND_HOST
     };
   },
   async mounted() {
     await this.fetchRecords();
   },
+  computed: {
+    getPhotoUrl() {
+      return (uuid) => {
+        return `http://${this.backend_host}:5000/uploads/${uuid}`;
+      }
+    }
+  },
   methods: {
     async fetchRecords() {
       try {
-        const response = await axios.get('http://192.168.20.170:5000/records');
+        const response = await axios.get(`http://${this.backend_host}:5000/records/${localStorage.getItem('username')}`);
         this.records = response.data.records;
       } catch (error) {
         console.error('Error fetching records:', error);
@@ -51,7 +59,7 @@ export default {
     },
     async deleteRecord(id) {
       try {
-        const response = await axios.delete(`http://192.168.20.170:5000/records/${id}`);
+        const response = await axios.delete(`http://${this.backend_host}:5000/records/${id}`);
         if (response.data.success) {
           this.records = this.records.filter(record => record.id !== id);
         } else {
@@ -62,7 +70,7 @@ export default {
       }
     },
     previewImage(photo) {
-      this.preview = `http://192.168.20.170:5000/uploads/${photo}`;
+      this.preview = `http://${this.backend_host}:5000/uploads/${photo}`;
     }
   }
 };

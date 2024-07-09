@@ -44,7 +44,8 @@ export default {
       photo: null,
       thumbnail: null,
       isEnlarged: false,
-      signaturePad: null
+      signaturePad: null,
+      backend_host: process.env.VUE_APP_BACKEND_HOST
     };
   },
   mounted() {
@@ -96,7 +97,7 @@ export default {
       formData.append('username', localStorage.getItem('username')); // 添加用户名
 
       try {
-        const response = await axios.post('http://192.168.20.170:5000/submit', formData, {
+        const response = await axios.post(`http://${this.backend_host}:5000/submit`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

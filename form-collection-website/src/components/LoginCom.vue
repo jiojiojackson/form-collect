@@ -30,7 +30,7 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await axios.post('http://192.168.20.170:5000/login', {
+        const response = await axios.post('http://'+process.env.VUE_APP_BACKEND_HOST+':5000/login', {
           username: this.username,
           password: this.password
         });
