@@ -1,5 +1,15 @@
 from PIL import Image
 import os
+import uuid
+import io
+import base64
+import re
+
+# 获取当前文件的绝对路径
+current_file_path = os.path.abspath(__file__)
+# 获取当前文件所在的目录的绝对路径
+current_file_dir = os.path.dirname(current_file_path)
+uploud_folder_path = os.path.join(current_file_dir, 'uploads')
 
 def merge_images(base_path, overlay_path, output_path, bottom_margin=150, right_margin=4):
   """
@@ -41,6 +51,36 @@ def merge_images(base_path, overlay_path, output_path, bottom_margin=150, right_
     print("图片未找到，请检查路径是否正确。")
   except Exception as e:
     print(f"发生错误: {e}")
+
+def new_uuid():
+  uuid_str = str(uuid.uuid4())
+  return uuid_str
+
+def save_photo(photo, myuuid):
+  photo_dir = os.path.join(uploud_folder_path, f'{myuuid}.png')
+  # 使用 Pillow 打开图片
+  try:
+      img = Image.open(photo)
+  except IOError:
+      print("Invalid image file")
+
+  # 将图片转换为 RGB 模式（如果需要）
+  if img.mode != 'RGB':
+      img = img.convert('RGB')
+
+  # 保存为 PNG 格式
+  img.save(photo_dir, format='PNG')
+  print('Image uploaded successfully!') 
+
+def save_signature(signature, myuuid):
+  # 移除 base64 头部信息
+  signature_data = re.sub('^data:image/.+;base64,', '', signature)
+  signature_data = base64.b64decode(signature_data)
+  signature_image = Image.open(io.BytesIO(signature_data))
+  signature_path = os.path.join(uploud_folder_path, f'{myuuid}.png')
+  signature_image.save(signature_path)
+   
+
 
 # # 设置图片路径
 # current_file_path = os.path.abspath(__file__)

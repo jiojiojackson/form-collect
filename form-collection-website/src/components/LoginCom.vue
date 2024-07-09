@@ -36,6 +36,7 @@ export default {
         });
         if (response.data.success) {
           localStorage.setItem('authToken', response.data.token); // 假设后端返回一个 token
+          localStorage.setItem('username', this.username); // 保存用户名
           this.$router.push('/form');
         } else {
           alert('Login failed');

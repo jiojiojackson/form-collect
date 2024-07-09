@@ -2,11 +2,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginCom from '../components/LoginCom.vue';
 import SignaturePad from '../components/SignaturePad.vue';
+import RecordsPage from '../components/RecordsPage.vue';
 
 const routes = [
   { path: '/', redirect: '/login' },
   { path: '/login', component: LoginCom },
-  { path: '/form', component: SignaturePad, meta: { requiresAuth: true } }
+  { path: '/form', component: SignaturePad, meta: { requiresAuth: true } },
+  { path: '/records', component: RecordsPage, meta: { requiresAuth: true } }
 ];
 
 const router = createRouter({

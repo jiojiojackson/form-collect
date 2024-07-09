@@ -1,6 +1,7 @@
 <!-- src/components/SignaturePad.vue -->
 <template>
   <div>
+    <Navbar />
     <h1>Submit Form with Signature</h1>
     <form @submit.prevent="submitForm">
       <div>
@@ -32,9 +33,11 @@
 <script>
 import SignaturePad from 'signature_pad';
 import axios from 'axios';
+import Navbar from './NavBar.vue';
 
 export default {
   name: 'SignaturePad',
+  components: { Navbar },
   data() {
     return {
       text: '',
@@ -90,6 +93,7 @@ export default {
       formData.append('text', this.text);
       formData.append('photo', this.photo);
       formData.append('signature', this.signaturePad.toDataURL());
+      formData.append('username', localStorage.getItem('username')); // 添加用户名
 
       try {
         const response = await axios.post('http://192.168.20.170:5000/submit', formData, {

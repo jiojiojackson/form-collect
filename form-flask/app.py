@@ -1,9 +1,9 @@
 # app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import mysql.connector
 import os
-from models import merge_images
+from models import merge_images, new_uuid, save_photo, save_signature, uploud_folder_path
 
 app = Flask(__name__)
 CORS(app)
@@ -30,7 +30,7 @@ def login():
 
     if user:
         # 生成一个 token，实际应用中应该使用更安全的方式生成
-        token = "some-generated-token"
+        token = new_uuid()
         return jsonify({'success': True, 'token': token})
     else:
         return jsonify({'success': False}), 401
@@ -39,6 +39,7 @@ def login():
 @app.route('/submit', methods=['POST'])
 def submit():
     text = request.form['text']
+    username = request.form['username']
     photo = request.files['photo']
     signature = request.form['signature']
 
@@ -46,42 +47,54 @@ def submit():
     print(f'Text: {text}')
     
     # 保存照片
-    if photo:
-        photo_path = os.path.join(uploud_folder_path, photo.filename)
-        photo.save(photo_path)
+    photo_uuid = new_uuid()
+    save_photo(photo, photo_uuid)
+    photo_path = os.path.join(uploud_folder_path, photo.filename)
+    photo.save(photo_path)
     
     # 保存签名
-    if signature:
-        import base64
-        import re
-        from io import BytesIO
-        from PIL import Image
-
-        # 移除 base64 头部信息
-        signature_data = re.sub('^data:image/.+;base64,', '', signature)
-        signature_data = base64.b64decode(signature_data)
-        signature_image = Image.open(BytesIO(signature_data))
-        signature_path = os.path.join(uploud_folder_path, 'signature.png')
-        signature_image.save(signature_path)
+    sign_uuid = new_uuid()
+    save_signature(signature, sign_uuid)
     
-    signed_contract_path = os.path.join(uploud_folder_path, 'signed.png')
+    #合并签名
+    signed_uuid = new_uuid()
+    signature_path = os.path.join(uploud_folder_path, f'{sign_uuid}.png')
+    signed_contract_path = os.path.join(uploud_folder_path, f'{signed_uuid}.png')
     blank_contract_path = os.path.join(uploud_folder_path, 'contract.png')
     merge_images(blank_contract_path, signature_path, signed_contract_path)
     
     cursor = db.cursor()
-    cursor.execute("INSERT INTO submissions (text, photo_path, signature_path) VALUES (%s, %s, %s)",
-                   (text, photo_path, signature_path))
+    cursor.execute("INSERT INTO submissions (text, username, photoUuid, signUuid) VALUES (%s, %s, %s, %s)",
+                   (text, username, photo_uuid, signed_uuid))
     db.commit()
     cursor.close()
     
     return jsonify({'success': True})
 
+@app.route('/records', methods=['GET'])
+def get_records():
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT id, text, photoUuid, signUuid FROM submissions")
+    records = cursor.fetchall()
+    cursor.close()
+
+    return jsonify(records=records)
+
+@app.route('/records/<int:id>', methods=['DELETE'])
+def delete_record(id):
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM submissions WHERE id = %s", (id,))
+    db.commit()
+    cursor.close()
+
+    return jsonify(success=True)
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    filename = filename + '.png'
+    return send_from_directory(uploud_folder_path, filename)
+
 if __name__ == '__main__':
-    # 获取当前文件的绝对路径
-    current_file_path = os.path.abspath(__file__)
-    # 获取当前文件所在的目录的绝对路径
-    current_file_dir = os.path.dirname(current_file_path)
-    uploud_folder_path = os.path.join(current_file_dir, 'uploads')
     if not os.path.exists(uploud_folder_path): os.makedirs(uploud_folder_path)
 
     app.run(debug=True, host='0.0.0.0', port=5000)
